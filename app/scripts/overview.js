@@ -1,3 +1,5 @@
+window.DEBUG = true;
+
 var App = function () {
     // init...
 
@@ -5,16 +7,33 @@ var App = function () {
      * - Get user's geolocation
      * - Initialize the app's parts
      */
+
+    // Create alias to `this`
+    var self = this;
+
+    // Get the user's geolocation
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(self.user.updatePosition);
+    };
 };
+
+App.prototype.user = {
+    position, // type: google.maps.LatLng
+    closestStation,
+
+    /**
+     * - Updates the user's position
+     * - Informs the rest of the app about the update
+     */
+    updatePosition: function (position) {
+        this.user.position = position;
+        if(window.DEBUG) console.log("Position updated", position);
+    },
+}
 
 App = {
     map, // Google Map instance
     mapDisplay, // for showing routes on the map
-
-    user: { // Data of the visitor
-        position, // type: google.maps.LatLng
-        closestStation
-    },
 
     services: { // Google Maps services
         geocoder,
