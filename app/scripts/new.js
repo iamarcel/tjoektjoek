@@ -25,6 +25,10 @@ var App = function () {
             draggable: false
         }),
     };
+    this.rail = {
+        to: undefined,
+        from: undefined
+    };
 
     // Set up location watching
     if (navigator.geolocation) {
@@ -40,6 +44,9 @@ var App = function () {
     $("#submit-dest").on("click", {self: this}, this.submitDest);
 };
 
+/**
+ * Sets up the map for first use
+ */
 App.prototype.initMap = function() {
     if (this.maps.initialized === true) return;
 
@@ -163,15 +170,17 @@ App.prototype.getClosestStation = function(from, stations, callback) {
         destinations: coords,
         travelMode: self.user.travelMode
     }, function (response, status) {
-        self.parseDistanceMatrix(response, status, callback);
+        self.parseDistanceMatrix(response, status, function (nearest) {
+            nearest.station = stations[closest[nearest.index].station];
+            if (callback) callback(nearest);
+        });
     });
 };
 
 App.prototype.parseDistanceMatrix = function(response, status, callback) {
     if (status == google.maps.DistanceMatrixStatus.OK) {
         // Create placeholder for nearest object
-        var nearest = {duration: {value: undefined}};
-        var nearestIndex = 0;
+        var nearest = {duration: {value: undefined}, index: undefined};
 
         if(window.DEBUG) console.log("Matrix Directions Result", response);
 
@@ -184,8 +193,11 @@ App.prototype.parseDistanceMatrix = function(response, status, callback) {
             }
         };
 
+        nearest.address = response.destinationAddresses[nearestIndex];
+        nearest.index = nearestIndex;
+
         if (window.DEBUG) console.log("Nearest found: ", nearest);
-        if (callback) callback(response.destinationAddresses[nearestIndex]);
+        if (callback) callback(nearest);
     }
 };
 
@@ -208,11 +220,22 @@ App.prototype.submitDest = function(ev) {
     };
     self.maps.directionsRenderers = [];
 
+    // Reset stations
+    self.rail = {
+        to: undefined,
+        from: undefined
+    };
+
     // Get stations
     self.getStations(function (stations) {
         // Station to dest
         self.getClosestStation($("#dest").val(), stations, function(nearest) {
-            self.getDirections(nearest, $("#dest").val(), function(result) {
+            if (window.DEBUG) console.log("Closest station to destination", nearest.station);
+            // Lookup timetables
+            self.rail.to = nearest.station;
+            self.findTrain();
+
+            self.getDirections(nearest.address, $("#dest").val(), function(result) {
                 // Create new directionsRenderer
                 var directionsRenderer = new google.maps.DirectionsRenderer({
                     preserveViewport: true
@@ -228,7 +251,12 @@ App.prototype.submitDest = function(ev) {
 
         // Station to here
         self.getClosestStation(pos, stations, function(nearest) {
-            self.getDirections(pos, nearest, function(result) {
+            if (window.DEBUG) console.log("Closest station to here", nearest.station);
+            // Lookup timetables
+            self.rail.from = nearest.station;
+            self.findTrain();
+
+            self.getDirections(pos, nearest.address, function(result) {
                 // Create new directionsRenderer
                 var directionsRenderer = new google.maps.DirectionsRenderer({
                     preserveViewport: true
@@ -297,6 +325,47 @@ App.prototype.getStations = function(callback) {
     });
 };
 
+App.prototype.findTrain = function() {
+    var self = this;
+    if (self.rail.to == undefined || self.rail.from == undefined) return;
+
+    if (window.DEBUG) console.log("About to search for connection between", self.rail.from, self.rail.to)
+
+    $.ajax({
+        url: "http://api.irail.be/connections/",
+        dataType: "json",
+        type: "GET",
+        data: {
+            lang: "NL",
+            format: "json",
+            from: self.rail.from.standardname,
+            to: self.rail.to.standardname
+        },
+        success: function (data) {
+            if (window.DEBUG) console.log("Got connections", data.connection);
+
+            var connection = data.connection[0];
+            // Show information in modal
+            var departureDate = new Date(parseInt(connection.departure["time"])*1000);
+            $("#connection-departure-station").text(connection.departure.station);
+            $("#connection-departure-time").text(self.formatDate(departureDate));
+            $("#connection-departure-platform").text(connection.departure.platform);
+
+            var arrivalDate = new Date(parseInt(connection.arrival["time"])*1000);
+            $("#connection-arrival-station").text(connection.arrival.station);
+            $("#connection-arrival-time").text(self.formatDate(arrivalDate));
+            $("#connection-arrival-platform").text(connection.arrival.platform);
+
+            // Show modal
+            $("#connection-modal").modal();
+        }
+    });
+};
+
+App.prototype.formatDate = function(date) {
+    return ('0' + date.getHours()).slice(-2) + ':'
+             + ('0' + date.getMinutes()).slice(-2);
+};
 
 
 
