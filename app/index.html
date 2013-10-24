@@ -33,11 +33,14 @@
                         <input type="text" id="dest" class="form-control" placeholder="Bestemming...">
                     </div>
                     <div class="form-group">
+                        Trein en...
+                    </div>
+                    <div class="form-group">
                         <select name="travel-type" id="travel-type" class="form-control">
-                            <option value="car">Te voet</option>
-                            <option value="bike">Fiets</option>
-                            <option value="car">Auto</option>
-                            <option value="transit">Bus</option>
+                            <option value="WALKING">Te voet</option>
+                            <option value="BICYCLING">Fiets</option>
+                            <option value="DRIVING">Auto</option>
+                            <option value="TRANSIT">Openbaar vervoer</option>
                         </select>
                     </div>
                     <button id="submit-dest" class="btn btn-success">Go!</button>
@@ -95,7 +98,7 @@
         <!-- endbuild -->
 
         <!-- Google Maps -->
-        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyC4TquJuJq2nF0XEDzBggIOPEzhv0ZkueI&sensor=false">
+        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyC4TquJuJq2nF0XEDzBggIOPEzhv0ZkueI&sensor=false"></script>
 
 
         <!-- build:js scripts/plugins.js -->

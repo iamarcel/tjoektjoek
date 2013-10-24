@@ -5,7 +5,7 @@ var App = function () {
     var self = this;
 
     this.user = {
-        travelMode: google.maps.TravelMode.DRIVING,
+        travelMode: google.maps.TravelMode.WALKING,
     };
     this.maps = {
         initialized: false,
@@ -42,6 +42,7 @@ var App = function () {
 
     // Set up UI handlers
     $("#submit-dest").on("click", {self: this}, this.submitDest);
+    $("#travel-type").on("change", {self: this}, this.setTravelType);
 };
 
 /**
@@ -273,9 +274,22 @@ App.prototype.submitDest = function(ev) {
 
     // Adjust map zoom
     self.getCoordinates($("#dest").val(), function(coords) {
-        var bounds = new google.maps.LatLngBounds(pos, coords);
+        if (pos.lng() < coords.lng())
+            var bounds = new google.maps.LatLngBounds(pos, coords);
+        else
+            var bounds = new google.maps.LatLngBounds(coords, pos);
         self.maps.map.fitBounds(bounds);
     })
+};
+
+/**
+ * Change the user's travel type
+ */
+App.prototype.setTravelType = function(ev) {
+    var self = ev.data.self;
+
+    self.user.travelMode = google.maps.TravelMode[$("#travel-type").val()];
+    if (window.DEBUG) console.log("Changed travel mode", self.user.travelMode);
 };
 
 
