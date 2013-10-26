@@ -33,16 +33,32 @@
                         <input type="text" id="dest" class="form-control" placeholder="Bestemming...">
                     </div>
                     <div class="form-group">
-                        Trein en...
-                    </div>
-                    <div class="form-group">
-                        <select name="travel-type" id="travel-type" class="form-control">
+                        <select name="travel-mode" id="travel-mode" class="form-control">
+                            <option value="TRAIN">Met de trein</option>
                             <option value="WALKING">Te voet</option>
                             <option value="BICYCLING">Fiets</option>
                             <option value="DRIVING">Auto</option>
                             <option value="TRANSIT">Openbaar vervoer</option>
                         </select>
                     </div>
+                    <div id="travel-mode-beta-group" class="form-group">
+                        <div class="form-group">
+                            en
+                        </div>
+                        <div class="form-group">
+                            <select name="travel-mode" id="travel-mode-beta" class="form-control">
+                                <option value="WALKING">Te voet</option>
+                                <option value="BICYCLING">Fiets</option>
+                                <option value="DRIVING">Auto</option>
+                                <option value="TRANSIT">Openbaar vervoer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="arrival-time" placeholder="Aankomsttijd...">
+                    </div>
+
                     <button id="submit-dest" class="btn btn-success">Go!</button>
                 </div>
                 <!--<p id="results">Dichtstbijzijnde station: <span id="closest-station"></span></p>-->
@@ -115,11 +131,12 @@
         <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
         <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
         <script src="bower_components/sass-bootstrap/js/tab.js"></script>
-        <script src="scripts/irail-api.js"></script>
         <!-- endbuild -->
 
         <!-- build:js scripts/main.js -->
-        <script src="scripts/new.js"></script>
+        <script src="scripts/rail.js"></script>
+        <script src="scripts/map.js"></script>
+        <script src="scripts/main.js"></script>
         <!-- endbuild -->
 </body>
 </html>
