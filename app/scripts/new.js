@@ -95,7 +95,8 @@ App.prototype.getDirections = function(from, to, callback) {
     var options = {
         origin: from,
         destination: to,
-        travelMode: this.user.travelMode
+        travelMode: this.user.travelMode,
+        region: "BE"
     };
 
     this.maps.directionsService.route(options, function(result, status) {
