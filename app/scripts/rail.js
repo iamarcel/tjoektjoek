@@ -1,3 +1,4 @@
+/* global Handlebars */
 'use strict';
 
 /**
@@ -204,24 +205,30 @@ var Rail = function (options) {
                     callback.apply(scope, [connection]);
                 }
 
-                // TODO: Move this UI clutter to a separate function
-
-                // Show information in modal
-                var departureDate = new Date(parseInt(connection.departure["time"])*1000);
-                $("#connection-departure-station").text(connection.departure.station);
-                $("#connection-departure-time").text(departureDate);
-                $("#connection-departure-platform").text(connection.departure.platform);
-
-                var arrivalDate = new Date(parseInt(connection.arrival["time"])*1000);
-                $("#connection-arrival-station").text(connection.arrival.station);
-                $("#connection-arrival-time").text(arrivalDate);
-                $("#connection-arrival-platform").text(connection.arrival.platform);
-
-                // Show modal
-                $("#connection-modal").modal();
+                options.connection = connection;
+                self.drawConnectionInfo(options);
             },
             error: self.errorHandler
         });
+    };
+
+    /**
+     * Shows connection info in info panel
+     * @callback findConnection()
+     * @param  {Object} options from findConnection()
+     */
+    this.drawConnectionInfo = function (options) {
+        // Check if options are present
+        if (!options.templateId ||
+            !options.panelId ||
+            !options.connection) {
+            throw 'Incomplete options for drawConnectionInfo()';
+        }
+
+        var template = Handlebars.compile($('#' + options.templateId).html());
+        var html = template(options.connection);
+
+        $('#' + options.panelId).html(html);
     };
 
 
@@ -231,5 +238,11 @@ var Rail = function (options) {
     // INITIALIZATION
     // Fetch stations
     this.getStations();
+
+    // Register Handlebars helper for prettier time
+    Handlebars.registerHelper('time', function (unixtime) {
+        var time = new Date(unixtime * 1000);
+        return time.getHours() + ':' + time.getMinutes();
+    });
 
 };

@@ -66,46 +66,94 @@
         </div>
 
 
-        <!-- Modal -->
-        <div class="modal fade" id="connection-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <!-- MODAL -->
+        <div class="modal fade" id="directions-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title">Jouw trein</h4>
+                <h3 class="modal-title">Route</h3>
               </div>
               <div class="modal-body">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Vertrek</th>
-                            <th>Aankomst</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th>Station</th>
-                            <td id="connection-departure-station"></td>
-                            <td id="connection-arrival-station"></td>
-                        </tr>
-                        <tr>
-                            <th>Tijd</th>
-                            <td id="connection-departure-time"></td>
-                            <td id="connection-arrival-time"></td>
-                        </tr>
-                        <tr>
-                            <th>Spoor</th>
-                            <td id="connection-departure-platform"></td>
-                            <td id="connection-arrival-platform"></td>
-                        </tr>
-                    </tbody>
-                </table>
+
+                <div class="row">
+                  <div class="col-md-12">
+                    <h4 class="if-use-train">Naar het station</h4>
+                    <div id="directions-panel-alpha"></div>
+                  </div>
+                </div>
+
+                <div class="row if-use-train">
+                  <div class="col-md-12">
+                    <h4>Jouw trein</h4>
+                    <div id="rail-panel"></div>
+                  </div>
+                </div>
+
+                <div class="row if-use-train">
+                  <div class="col-md-12">
+                    <h4>Naar je bestemming</h4>
+                    <div id="directions-panel-beta"></div>
+                  </div>
+                </div>
+
               </div>
             </div><!-- /.modal-content -->
           </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->
 
+        <script id="rail-template" type="text/x-handlebars-template">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Vertrek</th>
+                <th>Aankomst</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Plaats</th>
+                <td>{{departure.station}}</td>
+                <td>{{arrival.station}}</td>
+              </tr>
+              <tr>
+                <th>Tijd</th>
+                <td>{{time departure.time}}</td>
+                <td>{{time arrival.time}}</td>
+              </tr>
+              <tr>
+                <th>Perron</th>
+                <td>{{departure.platform}}</td>
+                <td>{{arrival.platform}}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          {{#if vias}}
+            <h5>Overstappen</h5>
+            <table class="table table-striped">
+            <thead>
+            <tr>
+              <th>Station</th>
+              <th>Aankomsttijd</th>
+              <th>Vertrektijd</th>
+              <th>Vertrekplatform</th>
+            <td>
+            </thead>
+            <tbody>
+            {{#each vias.via}}
+              <tr>
+                <th>{{station}}</th>
+                <td>{{time arrival.time}}</td>
+                <td>{{time departure.time}}</td>
+                <td>{{departure.platform}}</td>
+              </tr>
+            {{/each}}
+            </tbody>
+            </table>
+          {{/if}}
+        </script>
 
         <!-- build:js scripts/vendor.js -->
         <!-- bower:js -->
@@ -114,7 +162,7 @@
         <!-- endbuild -->
 
         <!-- Google Maps -->
-        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyC4TquJuJq2nF0XEDzBggIOPEzhv0ZkueI&sensor=false"></script>
+        <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyC4TquJuJq2nF0XEDzBggIOPEzhv0ZkueI&sensor=false&language=nl"></script>
 
 
         <!-- build:js scripts/plugins.js -->
@@ -131,6 +179,8 @@
         <script src="bower_components/sass-bootstrap/js/scrollspy.js"></script>
         <script src="bower_components/sass-bootstrap/js/collapse.js"></script>
         <script src="bower_components/sass-bootstrap/js/tab.js"></script>
+
+        <script src="bower_components/handlebars/handlebars.js"></script>
         <!-- endbuild -->
 
         <!-- build:js scripts/main.js -->

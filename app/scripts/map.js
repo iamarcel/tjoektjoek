@@ -1,6 +1,9 @@
 /* global google */
 'use strict';
 
+/**
+ * @class
+ */
 var Map = function (options) {
 
     // Check if proper options are present
@@ -185,7 +188,7 @@ var Map = function (options) {
      * @callback DirectionsCallback
      * @param  {DirectionsResult} directionsResult
      */
-    this.drawDirections = function (directionsResult) {
+    this.drawDirections = function (directionsResult, options) {
         if (window.DEBUG) {
             console.log('Rendering directions...');
         }
@@ -201,16 +204,22 @@ var Map = function (options) {
 
         // Add renderer to list of directionsRenderers
         self.directionsRenderers.push(directionsRenderer);
+
+        // Render panel if its ID is set
+        if (typeof options.panelId === 'string') {
+            directionsRenderer.setPanel(document.getElementById(options.panelId));
+        }
     };
 
     /**
      * Clears all previously rendered directions
-     * @return {[type]} [description]
+     * @return undefined
      */
     this.clearDirections = function () {
         // Clear previous routes
         for (var i = self.directionsRenderers.length - 1; i >= 0; i--) {
             self.directionsRenderers[i].setMap(null);
+            self.directionsRenderers[i].setPanel(null);
         }
         self.directionsRenderers = [];
     };
