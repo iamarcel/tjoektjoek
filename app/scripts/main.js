@@ -31,6 +31,7 @@ var App = function () {
      */
     this.calcRoute = function () {
         $('#main-form').hide();
+        $('.show-modal').show();
 
         var destination = $('#dest').val();
 
@@ -183,6 +184,7 @@ var App = function () {
     };
 
 
+    $('.show-modal').hide();
     // Bind to UI events
     $('#submit-dest').on('click', this.calcRoute);
     $('#travel-mode, #travel-mode-beta').on('change', this.updateTravelMode);
