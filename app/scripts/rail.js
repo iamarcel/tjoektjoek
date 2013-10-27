@@ -53,7 +53,7 @@ var Rail = function (options) {
 
 
     // FUNCTIONS
-    this.errorHandler = options.errorHandler || console.log;
+    this.errorHandler = console.log;
 
     /**
      * Set the `from` location. Finds connection if stationTo is defined
@@ -63,6 +63,7 @@ var Rail = function (options) {
      */
     this.setFrom = function (station, options, callback) {
         this.stationFrom = new Station(station);
+        this.trainDepartureTime = options.time;
 
         if (this.stationTo) {
             options.from = this.stationFrom.standardname;
@@ -83,6 +84,9 @@ var Rail = function (options) {
         if (this.stationFrom) {
             options.from = this.stationFrom.standardname;
             options.to = this.stationTo.standardname;
+
+            options.time = this.trainDepartureTime;
+
             this.findConnection(options, this, callback);
         }
     };
@@ -242,7 +246,7 @@ var Rail = function (options) {
     // Register Handlebars helper for prettier time
     Handlebars.registerHelper('time', function (unixtime) {
         var time = new Date(unixtime * 1000);
-        return time.getHours() + ':' + time.getMinutes();
+        return time.getHours() + ':' + ('0' + time.getMinutes()).substr(-2);
     });
 
 };

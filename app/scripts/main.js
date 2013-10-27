@@ -12,9 +12,7 @@ var App = function () {
     this.map = new Map({
         mapId: 'map'
     });
-    this.rail = new Rail({
-
-    });
+    this.rail = new Rail();
 
     this.useTrain = true;
     this.travelMode = google.maps.TravelMode.WALKING;
@@ -113,7 +111,6 @@ var App = function () {
 
                     // Set the `to` station
                     self.rail.setTo(stations[closest.id], {
-                        time: arrivalTime,
                         timeSel: 'arrive',
                         templateId: 'rail-template',
                         panelId: 'rail-panel'
@@ -182,7 +179,7 @@ var App = function () {
 
         var finalTime = new Date(connectionDepartureTime.getTime() - self.toStationTime.getTime());
 
-        $('#depart-time').html(finalTime.getHours() + ':' + finalTime.getMinutes());
+        $('#depart-time').html(finalTime.getHours() + ':' + ('0' + finalTime.getMinutes()).substr(-2));
     };
 
 
