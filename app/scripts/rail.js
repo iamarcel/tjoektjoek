@@ -61,13 +61,13 @@ var Rail = function (options) {
      * @param {Object}  station
      * @param {Object}  options  other options for findConnection()
      */
-    this.setFrom = function (station, options) {
+    this.setFrom = function (station, options, callback) {
         this.stationFrom = new Station(station);
 
         if (this.stationTo) {
             options.from = this.stationFrom.standardname;
             options.to = this.stationTo.standardname;
-            this.findConnection(options);
+            this.findConnection(options, this, callback);
         }
     };
 
@@ -77,13 +77,13 @@ var Rail = function (options) {
      * @param {Object} station
      * @param {Object}  options  other options for findConnection()
      */
-    this.setTo = function (station, options) {
+    this.setTo = function (station, options, callback) {
         this.stationTo = new Station(station);
 
         if (this.stationFrom) {
             options.from = this.stationFrom.standardname;
             options.to = this.stationTo.standardname;
-            this.findConnection(options);
+            this.findConnection(options, this, callback);
         }
     };
 
@@ -161,12 +161,10 @@ var Rail = function (options) {
             format: 'json',
 
             from: options.from,
-            to: options.to,
-
-            date: 271013
+            to: options.to
         };
         if (options.time && options.timeSel) {
-            requestData.time = options.time;
+            requestData.time = '' + options.time.getHours() + options.time.getMinutes();
             requestData.timeSel = options.timeSel;
         }
 
@@ -190,9 +188,11 @@ var Rail = function (options) {
                 for (var i = 0; i < data.connection.length; i++) {
                     var conn = new Connection(data.connection[i]);
                     if (connection.departure.time < conn.departure.time &&
-                        conn.departure.time > now) {
+                        conn.departure.time > now &&
+                        conn.arrival.time < (options.time.getTime()/1000)) {
                         // If this departs later, it's better
-                        // (as long as it departs later than now)
+                        // (as long as it departs later than now
+                        // an later than the arrival time)
                         connection = conn;
                     }
                 }

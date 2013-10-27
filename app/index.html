@@ -27,7 +27,7 @@
 
             <div class="overlay-form">
                 <h3>Superprogramma! </h3>
-                <div class="form-inline" role="form">
+                <div class="form-inline" role="form" id="main-form">
                     <div class="form-group">
                         <label for="dest" class="sr-only">Bestemming: </label>
                         <input type="text" id="dest" class="form-control" placeholder="Bestemming...">
@@ -61,7 +61,6 @@
 
                     <button id="submit-dest" class="btn btn-success">Go!</button>
                 </div>
-                <!--<p id="results">Dichtstbijzijnde station: <span id="closest-station"></span></p>-->
             </div>
         </div>
 
@@ -75,6 +74,13 @@
                 <h3 class="modal-title">Route</h3>
               </div>
               <div class="modal-body">
+
+                <div class="row">
+                  <div class="col-md-12">
+                    <p class="text-center">Vertrek ten laatste</p>
+                    <p id="depart-time" class="huge-center"></p>
+                  </div>
+                </div>
 
                 <div class="row">
                   <div class="col-md-12">

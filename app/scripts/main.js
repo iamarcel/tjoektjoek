@@ -32,15 +32,18 @@ var App = function () {
      * Calculate the route for the given user input
      */
     this.calcRoute = function () {
+        $('#main-form').hide();
+
         var destination = $('#dest').val();
 
         var arrivalTime = $('#arrival-time').val();
-        // Convert arrivalTime to nice format
-        arrivalTime = ('0' + arrivalTime.substr(0, arrivalTime.indexOf(':')))
-            .slice(-2) +
-            ('0' + arrivalTime.substr(arrivalTime.indexOf(':'))).slice(-2);
-        console.log('Arrival time:', arrivalTime);
 
+        var arrivalDate = new Date(Date.now());
+        var hours = parseInt(arrivalTime.substr(0, arrivalTime.indexOf(':')), 10);
+        var minutes = parseInt(arrivalTime.substr(arrivalTime.indexOf(':')+1), 10);
+
+        arrivalDate.setHours(hours);
+        arrivalDate.setMinutes(minutes);
 
         // Clear previous directions
         self.map.clearDirections();
@@ -69,19 +72,29 @@ var App = function () {
                     // Add point to stationsLine
                     self.stationsLine.getPath().push(closest);
 
-                    // Set the `from` station
-                    self.rail.setFrom(stations[closest.id], {
-                        time: arrivalTime,
-                        timeSel: 'arrive',
-                        templateId: 'rail-template',
-                        panelId: 'rail-panel'
-                    });
-
                     self.map.getDirections({
                         origin: this.map.position,
                         destination: closest,
                         travelMode: self.travelMode
                     }, self, function (result) {
+                        this.toStationTime = new Date(parseInt(result.routes[0].legs[0].duration.value, 10) * 1000);
+
+                        // Calculate train arrival time
+                        var trainTime = new Date(arrivalDate.getTime() -
+                            parseInt(result.routes[0].legs[0].duration.value, 10) * 1000);
+
+                        if (window.DEBUG) {
+                            console.log('Arrival time for train', trainTime.getHours() +':'+ trainTime.getMinutes());
+                        }
+
+                        // Set the `from` station
+                        self.rail.setFrom(stations[closest.id], {
+                            time: trainTime,
+                            timeSel: 'arrive',
+                            templateId: 'rail-template',
+                            panelId: 'rail-panel'
+                        }, self.calcFinalTime);
+
                         self.map.drawDirections(result, {
                             panelId: 'directions-panel-alpha'
                         });
@@ -104,7 +117,7 @@ var App = function () {
                         timeSel: 'arrive',
                         templateId: 'rail-template',
                         panelId: 'rail-panel'
-                    });
+                    }, self.calcFinalTime);
 
                     self.map.getDirections({
                         origin: closest,
@@ -128,6 +141,13 @@ var App = function () {
                 destination: destination,
                 travelMode: self.travelMode
             }, self, function (result) {
+                self.toStationTime = new Date(parseInt(result.routes[0].legs[0].duration.value, 10) * 1000);
+                self.calcFinalTime({
+                    departure: {
+                        time: arrivalDate.getTime() / 1000
+                    }
+                });
+
                 self.map.drawDirections(result, {
                     panelId: 'directions-panel-alpha'
                 });
@@ -155,6 +175,14 @@ var App = function () {
             $('#travel-mode-beta-group').hide();
             $('#travel-mode-beta').val(modeAlpha);
         }
+    };
+
+    this.calcFinalTime = function (connection) {
+        var connectionDepartureTime = new Date(connection.departure.time * 1000);
+
+        var finalTime = new Date(connectionDepartureTime.getTime() - self.toStationTime.getTime());
+
+        $('#depart-time').html(finalTime.getHours() + ':' + finalTime.getMinutes());
     };
 
 
