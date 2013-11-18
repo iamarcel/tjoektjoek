@@ -40,10 +40,44 @@ var App = function () {
         var arrivalDate = new Date(Date.now());
         var hours = parseInt(arrivalTime.substr(0, arrivalTime.indexOf(':')), 10);
         var minutes = parseInt(arrivalTime.substr(arrivalTime.indexOf(':')+1), 10);
+        var day = ('00' + (arrivalDate.getDay()+1)).substr(-2);
 
         arrivalDate.setHours(hours);
         arrivalDate.setMinutes(minutes);
 
+        /**
+         * Find the amount of people at arrival date
+         */
+        var timeStr = day + ':' + hours + ':' + minutes;
+        var locStr = '(' + self.map.position.lat() + ',' +
+                self.map.position.lng() + ')';
+
+        console.log(timeStr, locStr);
+
+        $.ajax({
+            url: 'cgi-bin/Main.py',
+            data: {
+                location: locStr,
+                time: timeStr
+            },
+            success: function (data) {
+                $('#safe-to-leave').removeClass('alert-info');
+                if (parseInt(data,10) > 10) {
+                    $('#safe-to-leave').addClass('alert-danger').html(
+                        '<strong>Pas op!</strong> Het is superdruk, ik denk' +
+                        ' dat er " + data + " mensen zijn! Ben je zeker dat' +
+                        ' je nu wil vertrekken?');
+                } else {
+                    $('#safe-to-leave').addClass('alert-success').html(
+                        'Het is veilig, vertrek maar :)');
+                }
+            }
+        });
+
+
+        /**
+         * Calculate routes and stuff
+         */
         // Clear previous directions
         self.map.clearDirections();
         // Clear stationsLine
