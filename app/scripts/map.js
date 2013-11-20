@@ -224,6 +224,22 @@ var Map = function (options) {
         self.directionsRenderers = [];
     };
 
+    this.createHeatmap = function (arr) {
+        // Convert array to LatLng
+        var points = [];
+        for (var i = arr.length - 1; i >= 0; i--) {
+            points.push(self.latLng(arr[i].Coord));
+        }
+
+        var mvArr = new google.maps.MVCArray(points);
+
+        // Create heatmap
+        self.heatmap = new google.maps.visualization.HeatmapLayer({
+            data: mvArr
+        });
+        self.heatmap.setMap(self.map);
+    };
+
     /**
      * Returns a google.maps.LatLng instance
      * for the given coordinates
@@ -241,6 +257,11 @@ var Map = function (options) {
             } else if (y.lb && y.mb) {
                 return new google.maps.LatLng(y.lat(), y.lng());
             }
+        } else if (typeof y === 'string') {
+            // Format: "POINT(3.72832549963542 51.0461416747051)"
+            y = y.replace('POINT(', '').replace(')','');
+            var split = y.split(' ');
+            return new google.maps.LatLng(split[1], split[0]);
         } else {
             y = parseFloat(y);
             x = parseFloat(x);

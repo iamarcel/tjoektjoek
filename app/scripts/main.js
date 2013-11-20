@@ -1,7 +1,7 @@
 /* global google */
 'use strict';
 
-window.DEBUG = true;
+window.DEBUG = false;
 
 /**
  * @class
@@ -48,30 +48,40 @@ var App = function () {
         /**
          * Find the amount of people at arrival date
          */
-        var timeStr = day + ':' + hours + ':' + minutes;
-        var locStr = '(' + self.map.position.lat() + ',' +
-                self.map.position.lng() + ')';
+        var timeStr = hours + ':' + day;
 
-        console.log(timeStr, locStr);
+        self.map.getCoordinates(destination, self, function (location) {
+            var locStr = '(' + location.lng() + ' ' +
+                    location.lat() + ')';
 
-        $.ajax({
-            url: 'cgi-bin/Main.py',
-            data: {
-                location: locStr,
-                time: timeStr
-            },
-            success: function (data) {
-                $('#safe-to-leave').removeClass('alert-info');
-                if (parseInt(data,10) > 10) {
-                    $('#safe-to-leave').addClass('alert-danger').html(
-                        '<strong>Pas op!</strong> Het is superdruk, ik denk' +
-                        ' dat er " + data + " mensen zijn! Ben je zeker dat' +
-                        ' je nu wil vertrekken?');
-                } else {
-                    $('#safe-to-leave').addClass('alert-success').html(
-                        'Het is veilig, vertrek maar :)');
+            $.ajax({
+                url: '//movestud.ugent.be/~groep4/cgi-bin/Main.py',
+                async: true,
+                dataType: 'json',
+                data: {
+                    location: locStr,
+                    time: timeStr
+                },
+                success: function (data) {
+                    if (window.DEBUG) {
+                        console.log('MOVE DB data received', data);
+                    }
+
+                    $('#safe-to-leave').removeClass('alert-info');
+                    if (parseInt(data.idAmount,10) > 10) {
+                        $('#safe-to-leave').addClass('alert-danger').html(
+                            '<strong>Pas op!</strong> Het is superdruk, ik denk' +
+                            ' dat er ' + data.idAmount + ' mensen zijn! Ben je zeker dat' +
+                            ' je nu wil vertrekken?');
+                    } else {
+                        $('#safe-to-leave').addClass('alert-success').html(
+                            'Het is veilig, vertrek maar :)');
+                    }
+
+                    // Create heatmap of points
+                    self.map.createHeatmap(data.points);
                 }
-            }
+            });
         });
 
 
