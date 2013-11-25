@@ -53,6 +53,8 @@ var App = function () {
         self.map.getCoordinates(destination, self, function (location) {
             var locStr = '(' + location.lng() + ' ' +
                     location.lat() + ')';
+            var destStr = '(' + self.map.position.lng() + ' ' +
+                    self.map.position.lat() + ')';
 
             $.ajax({
                 url: '//movestud.ugent.be/~groep4/cgi-bin/Main.py',
@@ -60,6 +62,7 @@ var App = function () {
                 dataType: 'json',
                 data: {
                     location: locStr,
+                    destination: destStr,
                     time: timeStr
                 },
                 success: function (data) {
