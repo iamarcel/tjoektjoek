@@ -145,6 +145,27 @@ var App = function () {
                             panelId: 'directions-panel-alpha'
                         });
                         $('#directions-modal').modal();
+
+                        var points = result.routes[0].overview_parth;
+                        var pointStr = '';
+                        for (var i = points.length - 1; i >= 0; i--) {
+                            pointsStr += i + ':' + points[i] + ';';
+                        }
+                        pointsStr = pointsStr.substr(0, pointsStr.length-1);
+
+                        $.ajax({
+                            url: '//movestud.ugent.be/~groep4/cgi-bin/Main.py',
+                            async: true,
+                            dataType: 'json',
+                            data: {
+                                pointsStr
+                            },
+                            success: function (data) {
+                                if (window.DEBUG) {
+                                    console.log('MOVE DB 2 data received', data);
+                                }
+                            }
+                        });
                     });
                 });
 
