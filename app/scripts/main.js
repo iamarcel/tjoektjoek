@@ -1,4 +1,4 @@
-/* global google, Map, Rail, Busy, _, Station */
+/* global google, Map, Rail, Busy, _, Station, Spinner */
 'use strict';
 
 window.DEBUG = true;
@@ -40,12 +40,34 @@ var App = function () {
     });
     this.stationsLine.setMap(this.map.map);
 
+    // Spinner
+    var spinnerOpts = {
+        lines: 5, // The number of lines to draw
+        length: 0, // The length of each line
+        width: 5, // The line thickness
+        radius: 5, // The radius of the inner circle
+        corners: 1, // Corner roundness (0..1)
+        rotate: 54, // The rotation offset
+        direction: 1, // 1: clockwise, -1: counterclockwise
+        color: '#000', // #rgb or #rrggbb or array of colors
+        speed: 2.0, // Rounds per second
+        trail: 50, // Afterglow percentage
+        shadow: false, // Whether to render a shadow
+        hwaccel: false, // Whether to use hardware acceleration
+        className: 'spinner', // The CSS class to assign to the spinner
+        zIndex: 2e9, // The z-index (defaults to 2000000000)
+        top: 'auto', // Top position relative to parent in px
+        left: 'auto' // Left position relative to parent in px
+    };
+    this.spinner = new Spinner(spinnerOpts).spin(document.getElementById('spinner'));
+    $('#spinner').hide();
+
     /**
      * Calculate the route for the given user input
      */
     this.calcRoute = function () {
         $('#main-form').hide();
-        $('.show-modal').show();
+        $('#spinner').show();
 
         self.destination = $('#dest').val();
 
@@ -114,43 +136,6 @@ var App = function () {
                         type: 'origin',
                         stations: closestStations
                     });
-
-                    /*
-
-                    // Add point to stationsLine
-                    self.stationsLine.getPath().push(closest);
-
-                    self.map.getDirections({
-                        origin: this.map.position,
-                        destination: closest,
-                        travelMode: self.travelMode
-                    }, self, function (result) {
-                        this.toStationTime = new Date(parseInt(result.routes[0].legs[0].duration.value, 10) * 1000);
-
-                        // Calculate train arrival time
-                        var trainTime = new Date(arrivalDate.getTime() -
-                            parseInt(result.routes[0].legs[0].duration.value, 10) * 1000);
-
-                        if (window.DEBUG) {
-                            console.log('Arrival time for train', trainTime.getHours() +':'+ trainTime.getMinutes());
-                        }
-
-                        // Set the `from` station
-                        self.rail.setFrom(stations[closest.id], {
-                            time: trainTime,
-                            timeSel: 'arrive',
-                            templateId: 'rail-template',
-                            panelId: 'rail-panel'
-                        }, self.calcFinalTime);
-
-                        self.map.drawDirections(result, {
-                            panelId: 'directions-panel-alpha'
-                        });
-                        $('#directions-modal').modal();
-
-                        self.busy.speed(result.routes[0].overview_path, arrivalDate, function(data) {});
-                    });
-                    */
                 });
 
                 // Find closest station to destination
@@ -164,31 +149,6 @@ var App = function () {
                         type: 'destination',
                         stations: closestStations
                     });
-
-                    /*
-                    // Add point to stationsLine
-                    self.stationsLine.getPath().push(closest);
-
-                    // Set the `to` station
-                    self.rail.setTo(stations[closest.id], {
-                        timeSel: 'arrive',
-                        templateId: 'rail-template',
-                        panelId: 'rail-panel'
-                    }, self.calcFinalTime);
-
-                    self.map.getDirections({
-                        origin: closest,
-                        destination: destination,
-                        travelMode: self.travelMode
-                    }, self, function (result) {
-                        self.map.drawDirections(result, {
-                            panelId: 'directions-panel-beta'
-                        });
-                        $('#directions-modal').modal();
-
-                        self.busy.speed(result.routes[0].overview_path, arrivalDate, function(data) {});
-                    });
-                    */
                 });
             });
         } else {
@@ -315,7 +275,7 @@ var App = function () {
             // Time (seconds) too early
             var tooEarly = self.arrivalDate.getTime()/1000 - parseInt(el.arrival.time) - arrivalStation.travelTimeTo;
             if (tooEarly < 0) {
-                tooEarly = Infinity;
+                tooEarly = Math.pow(tooEarly, 4);
                 // If the train arrives AFTER our specified time limit, that's baaaaad.
             }
             // Vias
@@ -391,7 +351,7 @@ var App = function () {
             travelMode: self.travelMode
         }, self, function (result) {
             self.map.drawDirections(result, {
-                panelId: 'directions-panel-beta'
+                panelId: 'directions-panel-alpha'
             });
             $('#directions-modal').modal();
 
@@ -431,6 +391,12 @@ var App = function () {
            Calculate final time
          */
         self.calcFinalTime(connection);
+
+        /*
+           Hide spinner, show route button
+         */
+        $('#spinner').hide();
+        $('.show-modal').show();
     };
 
 

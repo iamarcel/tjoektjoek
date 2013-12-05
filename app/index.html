@@ -21,6 +21,8 @@
 
 
         <div class="container">
+            <div class="alert alert-error" id="error-alert"></div>
+
             <div id="map">
                 <small>laden...</small>
             </div>
@@ -61,6 +63,7 @@
 
                     <button id="submit-dest" class="btn btn-success">Go!</button>
                 </div>
+                <div id="spinner"></div>
             </div>
         </div>
 
@@ -168,6 +171,7 @@
         <script src="bower_components/jquery/jquery.js"></script>
         <script src="bower_components/handlebars/handlebars.js"></script>
         <script src="bower_components/underscore/underscore.js"></script>
+        <script src="bower_components/spin.js/spin.js"></script>
         <!-- endbower -->
         <!-- endbuild -->
 
