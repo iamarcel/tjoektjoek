@@ -6,17 +6,16 @@
  */
 var Station = function (data) {
     this.id           = data.id;
-    this.locationX    = data.locationX;
-    this.locationY    = data.locationY;
+    this.locationX    = parseFloat(data.locationX);
+    this.locationY    = parseFloat(data.locationY);
+    this.lat          = this.locationY;
+    this.lng          = this.locationX;
     this.name         = data.name;
     this.standardname = data.standardname;
 
-    this.lat = function () {
-        return data.locationY;
-    };
-    this.lng = function () {
-        return data.locationX;
-    };
+    this.data = data;
+
+    var self = this;
 };
 
 /**

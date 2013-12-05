@@ -1,4 +1,4 @@
-/* global google */
+/* global google, _ */
 'use strict';
 
 /**
@@ -93,7 +93,7 @@ var Map = function (options) {
      * @return undefined
      */
     this.findClosest = function (options, scope, callback) {
-        var i,j;
+        var i;
 
         // Check if proper options are present
         if (!options.origin ||
@@ -127,23 +127,16 @@ var Map = function (options) {
 
         /*
          * Step 1
-         * Find the 3 closest locations in birds' eye view
+         * Sort stations by distance in birds' eye view
          */
-        var closestAmount = 3;
-        var closest = [];
 
-        for (i = 0; i < dest.length; i++) {
-            // Caulcate distance
-            dest[i].dist = Math.pow(dest[i].lng() - orig.lng(), 2) +
-                    Math.pow(dest[i].lat() - orig.lat(), 2);
+        var birdSorted = _.sortBy(dest, function (station) {
+            return Math.pow(station.lng - orig.lng(), 2) +
+                    Math.pow(station.lat - orig.lat(), 2);
+        });
 
-            // Compare distances
-            for (j = 0; j < closestAmount; j++) {
-                if (!closest[j] || dest[i].dist < closest[j].dist) {
-                    closest[j] = dest[i];
-                    break;
-                }
-            }
+        if (window.DEBUG) {
+            console.log('Sorted by birds\' eye view. First station: ', birdSorted[0]);
         }
 
         /*
@@ -151,31 +144,40 @@ var Map = function (options) {
          * We have the 3 closest stations in birds' eye view.
          * Now, request Google for the one with the least travel time.
          */
+        var stationsToCheck = _.first(birdSorted, options.amountToSend);
         this.distanceMatrixService.getDistanceMatrix({
             origins: [orig],
-            destinations: closest,
+            destinations: stationsToCheck,
             travelMode: options.travelMode
         }, function (response, status) {
-            var nearest;
-
             if (status === google.maps.DistanceMatrixStatus.OK) {
-                // Find the nearest object (= where the duration.value is least)
-                for (var i = 0; i < response.rows[0].elements.length; i++) {
-                    if (!nearest ||
-                        nearest.duration.value >
-                            response.rows[0].elements[i].duration.value) {
-                        nearest = response.rows[0].elements[i];
-                        nearest.id = closest[i].id;
-                    }
+                // Assign an id to the matrix results
+                // This id corresponds to the index in stationsToCheck.
+                for (var i = response.rows[0].elements.length - 1; i >= 0; i--) {
+                    response.rows[0].elements[i].id = i;
+                }
+
+                // Sort by distance
+                var sortedDistances = _.sortBy(response.rows[0].elements, function (route) {
+                    return route.duration.value;
+                });
+
+                // Create corresponding array of stations
+                var stations = [];
+                for (i = 0; i < sortedDistances.length; i++) {
+                    var station = stationsToCheck[sortedDistances[i].id];
+                    station.travelTimeTo = sortedDistances[i].duration.value;
+                    stations.push(station);
                 }
 
                 if (window.DEBUG) {
-                    console.log('Found the closest location.',
-                        dest[nearest.id], nearest);
+                    console.log('sortedDistances', sortedDistances);
+                    console.log('Found the closest locations.',
+                        stations);
                 }
 
                 if (typeof callback === 'function') {
-                    callback.apply(scope, [dest[nearest.id]]);
+                    callback.apply(scope, [stations]);
                 }
             } else {
                 throw status;
