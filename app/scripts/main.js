@@ -1,7 +1,7 @@
-/* global google */
+/* global google, Map, Rail, Busy */
 'use strict';
 
-window.DEBUG = false;
+window.DEBUG = true;
 
 /**
  * @class
@@ -13,6 +13,7 @@ var App = function () {
         mapId: 'map'
     });
     this.rail = new Rail();
+    this.busy = new Busy();
 
     this.useTrain = true;
     this.travelMode = google.maps.TravelMode.WALKING;
@@ -40,7 +41,6 @@ var App = function () {
         var arrivalDate = new Date(Date.now());
         var hours = parseInt(arrivalTime.substr(0, arrivalTime.indexOf(':')), 10);
         var minutes = parseInt(arrivalTime.substr(arrivalTime.indexOf(':')+1), 10);
-        var day = ('00' + (arrivalDate.getDay()+1)).substr(-2);
 
         arrivalDate.setHours(hours);
         arrivalDate.setMinutes(minutes);
@@ -48,42 +48,21 @@ var App = function () {
         /**
          * Find the amount of people at arrival date
          */
-        var timeStr = hours + ':' + day;
-
         self.map.getCoordinates(destination, self, function (location) {
-            var locStr = '(' + location.lng() + ' ' +
-                    location.lat() + ')';
-            var destStr = '(' + self.map.position.lng() + ' ' +
-                    self.map.position.lat() + ')';
-
-            $.ajax({
-                url: '//movestud.ugent.be/~groep4/cgi-bin/Main.py',
-                async: true,
-                dataType: 'json',
-                data: {
-                    location: locStr,
-                    destination: destStr,
-                    time: timeStr
-                },
-                success: function (data) {
-                    if (window.DEBUG) {
-                        console.log('MOVE DB data received', data);
-                    }
-
-                    $('#safe-to-leave').removeClass('alert-info');
-                    if (parseInt(data.idAmount,10) > 10) {
-                        $('#safe-to-leave').addClass('alert-danger').html(
-                            '<strong>Pas op!</strong> Het is superdruk, ik denk' +
-                            ' dat er ' + data.idAmount + ' mensen zijn! Ben je zeker dat' +
-                            ' je nu wil vertrekken?');
-                    } else {
-                        $('#safe-to-leave').addClass('alert-success').html(
-                            'Het is veilig, vertrek maar :)');
-                    }
-
-                    // Create heatmap of points
-                    self.map.createHeatmap(data.points);
+            self.busy.atPoint(location, arrivalDate, function (data) {
+                $('#safe-to-leave').removeClass('alert-info');
+                if (parseInt(data.idAmount,10) > 10) {
+                    $('#safe-to-leave').addClass('alert-danger').html(
+                        '<strong>Pas op!</strong> Het is superdruk, ik denk' +
+                        ' dat er ' + data.idAmount + ' mensen zijn! Ben je zeker dat' +
+                        ' je nu wil vertrekken?');
+                } else {
+                    $('#safe-to-leave').addClass('alert-success').html(
+                        'Het is veilig, vertrek maar :)');
                 }
+
+                // Create heatmap of points
+                self.map.createHeatmap(data.points);
             });
         });
 
@@ -146,26 +125,7 @@ var App = function () {
                         });
                         $('#directions-modal').modal();
 
-                        var points = result.routes[0].overview_parth;
-                        var pointStr = '';
-                        for (var i = points.length - 1; i >= 0; i--) {
-                            pointsStr += i + ':' + points[i] + ';';
-                        }
-                        pointsStr = pointsStr.substr(0, pointsStr.length-1);
-
-                        $.ajax({
-                            url: '//movestud.ugent.be/~groep4/cgi-bin/Main.py',
-                            async: true,
-                            dataType: 'json',
-                            data: {
-                                pointsStr
-                            },
-                            success: function (data) {
-                                if (window.DEBUG) {
-                                    console.log('MOVE DB 2 data received', data);
-                                }
-                            }
-                        });
+                        self.busy.speed(result.routes[0].overview_path, arrivalDate, function(data) {});
                     });
                 });
 
@@ -194,6 +154,8 @@ var App = function () {
                             panelId: 'directions-panel-beta'
                         });
                         $('#directions-modal').modal();
+
+                        self.busy.speed(result.routes[0].overview_path, arrivalDate, function(data) {});
                     });
                 });
             });
