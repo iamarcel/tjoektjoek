@@ -285,8 +285,8 @@ var App = function () {
             }
 
             el.score = (Math.log(duration) + Math.log(tooEarly) +
-                    Math.log(departureStation.travelTimeTo)) *
-                    (vias+1);
+                    Math.log(departureStation.travelTimeTo) + 
+                    vias);
         });
 
         var bestConnection = _.min(self.connections, function (connection) {
